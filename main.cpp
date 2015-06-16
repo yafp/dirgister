@@ -58,11 +58,3 @@ int main(int argc, char *argv[])
     mainWin.show();
     return app.exec();
 }
-
-
-
-// todo
-// -----------------------------------------------------
-// - delete content of target dir on start of processing
-// - remove un-needed functions / cleanup
-
