@@ -60,15 +60,9 @@ int main(int argc, char *argv[])
 }
 
 
-// Reminder
-// -----------------------------------------------------
-// iconset: http://www.premiumpixels.com/download/?file=eightyshades
-
-
 
 // todo
 // -----------------------------------------------------
 // - delete content of target dir on start of processing
 // - remove un-needed functions / cleanup
-// - create repo
-// - rename to Dirgister
+

@@ -63,7 +63,7 @@ MainWindow::MainWindow()
 
     connect(textEdit->document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
 
-    setCurrentFile("");
+    //setCurrentFile("");
     setUnifiedTitleAndToolBarOnMac(true);
 }
 
@@ -74,71 +74,30 @@ MainWindow::MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    writeSettings();
+    event->accept();
+
+    /*
     if (maybeSave()) {
         writeSettings();
         event->accept();
     } else {
         event->ignore();
     }
-}
-
-
-
-void MainWindow::newFile()
-{
-    /*
-    if (maybeSave()) {
-        textEdit->clear();
-        setCurrentFile("");
-    }
-    */
-}
-
-
-void MainWindow::open()
-{
-    /*
-    if (maybeSave()) {
-        QString fileName = QFileDialog::getOpenFileName(this);
-        if (!fileName.isEmpty())
-            loadFile(fileName);
-    }
     */
 }
 
 
 
-bool MainWindow::save()
-{
-    if (curFile.isEmpty()) {
-        return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
-}
 
 
 
-bool MainWindow::saveAs()
-{
-    QFileDialog dialog(this);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    QStringList files;
-    if (dialog.exec())
-        files = dialog.selectedFiles();
-    else
-        return false;
-
-    return saveFile(files.at(0));
-}
 
 
 
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About Dirgister"),
-            tr("<b>Dirgister</b> creates HTML based information pages based an user-defined folder and it's content."));
+   QMessageBox::about(this, tr("About Dirgister"),tr("<b>Dirgister</b> creates HTML based information pages based an user-defined folder and it's content."));
 }
 
 
@@ -197,8 +156,6 @@ void MainWindow::setTargetFolder()
 
     writeSettings();
     resetLogUI();
-
-
 }
 
 
@@ -283,7 +240,6 @@ void MainWindow::checkTarget()
 // Creates an index.html showing all containing files and folders
 void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder)
 {
-    qWarning() << "Starting: createSingleHTMLIndex()";
     qWarning() << "...The current directory: "+currentPath+" contains";
 
     // Generating Timestamp
@@ -312,7 +268,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         // write the new content
         stream << "<html>\n";
         stream << "<head>\n";
-        stream << "<title>DirIndexer</title>\n";
+        stream << "<title>DirGister</title>\n";
         stream << "<script src='//code.jquery.com/jquery-1.11.3.min.js'></script>\n";
         stream << "<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css'>\n";
         stream << "<style>";
@@ -324,7 +280,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         stream << "</head>\n";
 
         stream << "<body>\n";
-        stream << "<h1><i class='fa fa-list-alt'></i>&nbsp;DirIndexer</h1>\n";
+        stream << "<h1><i class='fa fa-list-alt'></i>&nbsp;DirGister</h1>\n";
 
         // nur auf den unterseiten
         if(srcFolder != currentPath) // all sub-pages
@@ -520,36 +476,12 @@ void MainWindow::userTriggeredGeneration()
 
 // Creating Menu Actions
 void MainWindow::createActions()
-{
-    //newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
-    //newAct->setShortcuts(QKeySequence::New);
-    //newAct->setStatusTip(tr("Create a new file"));
-    //connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
-
-
-    //openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
-    //openAct->setShortcuts(QKeySequence::Open);
-    //openAct->setStatusTip(tr("Open an existing file"));
-    //connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-
-
-    //saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
-    //saveAct->setShortcuts(QKeySequence::Save);
-    //saveAct->setStatusTip(tr("Save the document to disk"));
-    //connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-
-    //saveAsAct = new QAction(tr("Save &As..."), this);
-    //saveAsAct->setShortcuts(QKeySequence::SaveAs);
-    //saveAsAct->setStatusTip(tr("Save the document under a new name"));
-    //connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-
-    //setSourceFolderAct = new QAction(tr("Set source folder..."), this);
+{   
     setSourceFolderAct = new QAction(QIcon(":/images/iconSetSource.svg"), tr("Set source folder..."), this);
     //setSourceFolderAct->setShortcuts(QKeySequence::SaveAs);
     setSourceFolderAct->setStatusTip(tr("Select a source folder to index"));
     connect(setSourceFolderAct, SIGNAL(triggered()), this, SLOT(setSourceFolder()));
 
-    //setTargetFolderAct = new QAction(tr("Set target folder..."), this);
     setTargetFolderAct = new QAction(QIcon(":/images/iconSetTarget.svg"), tr("Set target folder..."), this);
     //setSourceFolderAct->setShortcuts(QKeySequence::SaveAs);
     setTargetFolderAct->setStatusTip(tr("Select a target folder for the index generation"));
@@ -562,19 +494,13 @@ void MainWindow::createActions()
 
 
     resetLogTextEditAct = new QAction(QIcon(":/images/iconTrash.svg"), tr("Reset Log..."), this);
-    //resetLogTextEditAct = new QAction(tr("&Reset Log..."), this);
-    //resetLogTextEditAct->setShortcuts(QKeySequence::SaveAs);
     resetLogTextEditAct->setStatusTip(tr("Erases all log entries"));
     connect(resetLogTextEditAct, SIGNAL(triggered()), this, SLOT(resetLogUI()));
 
 
     generateHTMLAct = new QAction(QIcon(":/images/iconGenerate.svg"), tr("&Generate"), this);
-    //generateHTMLAct->setShortcuts(QKeySequence::Paste);
     generateHTMLAct->setStatusTip(tr("Generates a new index for the selected folder"));
     connect(generateHTMLAct, SIGNAL(triggered()), this, SLOT(userTriggeredGeneration()));
-
-
-
 
 
     aboutAct = new QAction(tr("&About"), this);
@@ -587,8 +513,6 @@ void MainWindow::createActions()
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     //cutAct->setEnabled(false);
-
-
 }
 
 
@@ -624,8 +548,6 @@ void MainWindow::createToolBars()
 {
     //fileToolBar = addToolBar(tr("File"));
     //fileToolBar->addAction(newAct);
-    //fileToolBar->addAction(openAct);
-    //fileToolBar->addAction(saveAct);
 
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(setSourceFolderAct);
@@ -708,96 +630,6 @@ void MainWindow::documentWasModified()
 {
     //setWindowModified(textEdit->document()->isModified());
 }
-
-
-bool MainWindow::maybeSave()
-{
-    /*
-    if (textEdit->document()->isModified()) {
-        QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The document has been modified.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save)
-            return save();
-        else if (ret == QMessageBox::Cancel)
-            return false;
-    }
-    return true;
-    */
-}
-
-
-
-
-void MainWindow::loadFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return;
-    }
-
-    QTextStream in(&file);
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-#endif
-    textEdit->setPlainText(in.readAll());
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
-}
-
-
-
-
-bool MainWindow::saveFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    QTextStream out(&file);
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-#endif
-    out << textEdit->toPlainText();
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File saved"), 2000);
-    return true;
-}
-
-
-
-
-void MainWindow::setCurrentFile(const QString &fileName)
-{
-    curFile = fileName;
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
-
-    QString shownName = curFile;
-    if (curFile.isEmpty())
-        shownName = "Dirgister ("+appVersion+")";
-    setWindowFilePath(shownName);
-}
-
 
 
 
