@@ -1,0 +1,16 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/copy.png</file>
+    <file>images/cut.png</file>
+    <file>images/new.png</file>
+    <file>images/open.png</file>
+    <file>images/paste.png</file>
+    <file>images/save.png</file>
+	<file>images/generate.png</file>
+
+	<file>images/iconGenerate.svg</file>
+	<file>images/iconSetSource.svg</file>
+	<file>images/iconSetTarget.svg</file>
+	<file>images/iconTrash.svg</file>
+</qresource>
+</RCC>
