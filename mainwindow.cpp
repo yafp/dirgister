@@ -77,9 +77,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 
 
+void MainWindow::initValues()
+{
+   appVersion = "20150616.02";      // App Version String
+}
+
+
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About Dirgister"),tr("<b>Dirgister</b> creates HTML based information pages based an user-defined folder and it's content."));
+   QMessageBox::about(this, tr("About DirGister"),tr("<h2>DirGister</h2><p>... is a simple directory indexer by Florian Poeck.</p><p><b>DirGister</b> creates HTML based information pages based an user-defined folder and it's content.<p><p>Code, issues etc on <a href='https://github.com/yafp/dirgister'>Github</a>.</p>"));
 }
 
 
@@ -94,10 +100,7 @@ void MainWindow::resetLogUI()
 
 
 
-void MainWindow::initValues()
-{
-   appVersion = "20150616.02";      // App Version String
-}
+
 
 
 
