@@ -79,7 +79,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20150617.01";      // App Version String
+   appVersion = "20150617.02";      // App Version String
 }
 
 
@@ -308,31 +308,45 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
             foreach (QString str, allFiles)
             {
                 QString icon = "";
-
-
                 QString currentFile = QString("%1").arg(str);
 
                 // typ: audio
-                if(currentFile.contains(".mp3"))
+                if((currentFile.contains(".mp3")) | (currentFile.contains(".wav")))
                 {
                     icon = "<i class='fa fa-music'></i>";
                 }
 
                 // typ: image
-                if(currentFile.contains(".jpg"))
+                if((currentFile.contains(".jpg")) | (currentFile.contains(".png")) | (currentFile.contains(".gif")) | (currentFile.contains(".jpeg")))
                 {
                     icon = "<i class='fa fa-image'></i>";
                 }
 
-                // add check for other filetypes
+                // typ: pdf
+                if(currentFile.contains(".pdf"))
+                {
+                    icon = "<i class='fa fa-file-pdf-o'></i>";
+                }
+
+                // typ: text
+                if((currentFile.contains(".txt")) | (currentFile.contains(".rtf")))
+                {
+                    icon = "<i class='fa fa-file-text'></i>";
+                }
 
 
-                // lets check if icon is undefined
+                // typ: movie
+                if((currentFile.contains(".mov")) | (currentFile.contains(".mpg")) | (currentFile.contains(".mpeg")) | (currentFile.contains(".mp4")))
+                {
+                    icon = "<i class='fa fa-file-video-o'></i>";
+                }
+
+
+                // ELSE: lets check if icon is undefined
                 if(icon == "")
                 {
                     icon =  "<i class='fa fa-file-o'></i>";
                 }
-
 
                 stream << "<li>";
                 stream << icon+"&nbsp;";
