@@ -49,11 +49,11 @@
 
 int main(int argc, char *argv[])
 {
-    Q_INIT_RESOURCE(application);
+    Q_INIT_RESOURCE(dirgister);
 
     QApplication app(argc, argv);
     app.setOrganizationName("QtProject");
-    app.setApplicationName("Dirgister");
+    app.setApplicationName("DirGister");
     MainWindow mainWin;
     mainWin.show();
     return app.exec();

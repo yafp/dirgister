@@ -79,7 +79,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20150616.02";      // App Version String
+   appVersion = "20150617.01";      // App Version String
 }
 
 
