@@ -4,7 +4,7 @@ HEADERS       = mainwindow.h
 SOURCES       = main.cpp \
                 mainwindow.cpp
 
-RESOURCES     = application.qrc
+RESOURCES     = dirgister.qrc
 
 
 # fidel
