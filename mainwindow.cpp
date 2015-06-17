@@ -79,7 +79,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20150617.03";      // App Version String
+   appVersion = "20150617.04";      // App Version String
 }
 
 
@@ -234,7 +234,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         QStringList allFolders = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs);//(QDir::Filter::Files,QDir::SortFlag::NoSort)
         QStringList allFiles = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::Files);//(QDir::Filter::Files,QDir::SortFlag::NoSort)
 
-        qWarning() << allFolders;
+        //qWarning() << allFolders;
 
         // Create file
         QTextStream stream( &file );
@@ -251,12 +251,14 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         stream << "<script src='//code.jquery.com/jquery-1.11.3.min.js'></script>\n";
         stream << "<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css'>\n";
         stream << "<style>";
+        stream << "body { color: DimGray;}";
+        stream << "h1 { padding-top: 0px;}";
+        stream << "h2 { color: DimGray; font-size: 20; border-bottom: solid 2px DimGray; padding-bottom: 6px;}";
         stream << "h3 { color: DimGray; font-size: 12;}";
-        stream << "a:visited { color: black;}";
-        stream << "#header { background-color: Gainsboro; color: DimGray; padding: 15px; margin-top: 0px; a:visited { color: DimGray;} }";
+        stream << "a { color: DimGray; text-decoration: none;}";
+        stream << "a:visited { color: DimGray;}";
+        stream << "#header { background-color: Gainsboro; color: DimGray; padding: 15px; margin-top: 0px; a{ color: DimGray;} }";
         stream << "</style>";
-
-
         stream << "</head>\n";
 
         stream << "<body>\n";
@@ -290,7 +292,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
             {
                 stream << "<a href='";
                 stream << QString("%1").arg(str)+"/index.html";
-                stream << "'>";
+                stream << "'><i class='fa fa-folder-o'></i>&nbsp;";
                 stream << QString("%1").arg(str);
                 stream << "</a><br>";
 
@@ -309,7 +311,6 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         else
         {
             stream << "<h2><i class='fa fa-file'></i>&nbsp;Files ("+QString::number(allFiles.count())+")</h2>\n";
-            stream << "<ul>\n";
             foreach (QString str, allFiles)
             {
                 QString icon = "";
@@ -341,7 +342,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 
 
                 // typ: movie
-                if((currentFile.contains(".mov")) | (currentFile.contains(".mpg")) | (currentFile.contains(".avi")) | (currentFile.contains(".mpeg")) | (currentFile.contains(".mp4")))
+                if((currentFile.contains(".mov")) | (currentFile.contains(".mpg")) | (currentFile.contains(".mkv"))| (currentFile.contains(".flv")) | (currentFile.contains(".avi")) | (currentFile.contains(".mpeg")) | (currentFile.contains(".mp4")))
                 {
                     icon = "<i class='fa fa-file-video-o'></i>";
                 }
@@ -353,13 +354,10 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
                     icon =  "<i class='fa fa-file-o'></i>";
                 }
 
-                stream << "<li>";
                 stream << icon+"&nbsp;";
                 stream << QString("%1").arg(str);
-                stream << "</li>";
+                stream << "<br>\n";
             }
-            stream << "</ul>\n";
-
         }
 
         stream << "</body>\n";
