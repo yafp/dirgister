@@ -1,7 +1,5 @@
-# dirgister
-## about
-Dirgister creates html-based registers/indexes for user-defined directories and the related content.
-
+# DirGister
+... is a simple directory indexer with html output
 
 
 ## resources
