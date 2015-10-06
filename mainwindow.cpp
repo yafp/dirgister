@@ -1,56 +1,17 @@
-/****************************************************************************
-**
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
-**
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 #include <QtWidgets>
 #include "mainwindow.h"
 #include <QDebug>
 
 
-
-MainWindow::MainWindow()
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
 {
-    textEdit = new QPlainTextEdit;
-    textEdit->setReadOnly(true);
+    ui->setupUi(this);
 
-    setCentralWidget(textEdit);
     initValues();
     createActions();
     createMenus();
@@ -58,36 +19,69 @@ MainWindow::MainWindow()
     createStatusBar();
     readSettings();
 
-    connect(textEdit->document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
-    setUnifiedTitleAndToolBarOnMac(true);
+
+
+    // main UI
+    connect(ui->bt_selectSource, SIGNAL(clicked()), this, SLOT(setSourceFolder()));
+    connect(ui->bt_selectTarget, SIGNAL(clicked()), this, SLOT(setTargetFolder()));
+    connect(ui->bt_generateIndex, SIGNAL(clicked()), this, SLOT(userTriggeredGeneration()));
+
+    // about UI
+    //
+    // Issues Link
+    ui->l_linkIssues->setText("<a href=\"https://github.com/yafp/dirgister/issues\">Issues</a>");
+    ui->l_linkIssues->setTextFormat(Qt::RichText);
+    ui->l_linkIssues->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    ui->l_linkIssues->setOpenExternalLinks(true);
+    // Wiki Link
+    ui->l_linkWiki->setText("<a href=\"https://github.com/yafp/dirgister/wiki\">Wiki</a>");
+    ui->l_linkWiki->setTextFormat(Qt::RichText);
+    ui->l_linkWiki->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    ui->l_linkWiki->setOpenExternalLinks(true);
+    // Source Link
+    ui->l_linkSource->setText("<a href=\"https://github.com/yafp/dirgister\">Source</a>");
+    ui->l_linkSource->setTextFormat(Qt::RichText);
+    ui->l_linkSource->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    ui->l_linkSource->setOpenExternalLinks(true);
+
 }
 
+
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
 
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     writeSettings();
-    event->accept();
+    //event->accept();
 }
 
 
 
 void MainWindow::initValues()
 {
-   appVersion = "20150701.02";      // App Version String
+   appVersion = "20151006.01";      // App Version String
+
+   ui->l_appTitle->setText("DirGister");
+   ui->l_appVersion->setText(appVersion);
+   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer. It scans a source folder and writes a html-based index into a target-folder.\n");
 }
 
 
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About DirGister"),tr("<h2>DirGister</h2><p>... is a simple directory indexer by Florian Poeck.</p><p>It outputs HTML based index files making the entire content of the source folder browseable.<p><h3>Development</h3><p>Source, issues etc on <a href='https://github.com/yafp/dirgister'>Github</a>.</p>"));
+  // QMessageBox::about(this, tr("About DirGister"),tr("<h2>DirGister</h2><p>... is a simple directory indexer by Florian Poeck.</p><p>It outputs HTML based index files making the entire content of the source folder browseable.<p><h3>Development</h3><p>Source, issues etc on <a href='https://github.com/yafp/dirgister'>Github</a>.</p>"));
 }
 
 
 
 void MainWindow::resetLogUI()
 {
-   textEdit->clear();
+   ui->textEdit->clear();
    readSettings();
 }
 
@@ -109,10 +103,11 @@ void MainWindow::setSourceFolder()
     QString dir = QFileDialog::getExistingDirectory(this, tr("Select folder to Index"),"/home",QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if(dir != "")
     {
-        textEdit->moveCursor (QTextCursor::End);
-        textEdit->insertPlainText ("Source folder set to: "+dir+"\n");
+        ui->textEdit->moveCursor (QTextCursor::End);
+        ui->textEdit->insertPlainText ("Source folder set to: "+dir+"\n");
 
         srcFolder = dir;
+        ui->le_sourceFolder->setText(dir);
 
         writeSettings();
         resetLogUI();
@@ -127,10 +122,11 @@ void MainWindow::setTargetFolder()
 {
     QString dir = QFileDialog::getExistingDirectory(this, tr("Select target for Index"),"/home",QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    textEdit->moveCursor (QTextCursor::End);
-    textEdit->insertPlainText ("Target folder set to: "+dir+"\n");
+    ui->textEdit->moveCursor (QTextCursor::End);
+    ui->textEdit->insertPlainText ("Target folder set to: "+dir+"\n");
 
     targetFolder = dir;
+    ui->le_targetFolder->setText(dir);
 
     writeSettings();
     resetLogUI();
@@ -352,9 +348,9 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 
         file.close();
 
-        textEdit->moveCursor (QTextCursor::End);
-        textEdit->insertPlainText ("Creating: "+filename+"\n");
-        textEdit->repaint();
+        ui->textEdit->moveCursor (QTextCursor::End);
+        ui->textEdit->insertPlainText ("Creating: "+filename+"\n");
+        ui->textEdit->repaint();
 
 
         // Issue on Fedora with qDebug()
@@ -370,9 +366,9 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 //  check subdirectories of current folder
 void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 {
-    textEdit->moveCursor (QTextCursor::End);
-    textEdit->insertPlainText ("Checking subdirectories of "+currentSubPath+"\n\n");
-    textEdit->repaint();
+    ui->textEdit->moveCursor (QTextCursor::End);
+    ui->textEdit->insertPlainText ("Checking subdirectories of "+currentSubPath+"\n\n");
+    ui->textEdit->repaint();
 
     QDir recoredDir(currentSubPath);
     QStringList allFolders = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs);
@@ -405,12 +401,12 @@ void MainWindow::userTriggeredGeneration()
         switch (ret)
         {
           case QMessageBox::Yes:
-                textEdit->setPlainText("...started index generation\n\n");
+                ui->textEdit->setPlainText("...started index generation\n\n");
 
                 createSingleHTMLIndex(srcFolder,targetFolder);
 
-                textEdit->moveCursor (QTextCursor::End);
-                textEdit->insertPlainText ("\n\nIndex generation finished.\n");
+                ui->textEdit->moveCursor (QTextCursor::End);
+                ui->textEdit->insertPlainText ("\n\nIndex generation finished.\n");
 
                 QMessageBox::StandardButton reply;
                 reply = QMessageBox::question(this, "Finished index generation", "Would you like to open and display it?",QMessageBox::Yes|QMessageBox::No);
@@ -448,7 +444,7 @@ void MainWindow::userTriggeredGeneration()
 
 // Creating Menu Actions
 void MainWindow::createActions()
-{   
+{
     setSourceFolderAct = new QAction(QIcon(":/images/iconSetSource.svg"), tr("Set source folder..."), this);
     //setSourceFolderAct->setShortcuts(QKeySequence::SaveAs);
     setSourceFolderAct->setStatusTip(tr("Select a source folder to index"));
@@ -544,16 +540,22 @@ void MainWindow::readSettings()
     resize(size);
     move(pos);
 
-    qWarning() << "loading settings";
+    //qWarning() << "loading settings";
     srcFolder = settings.value("srcFolder").toString();
     targetFolder = settings.value("targetFolder").toString();
 
-    qWarning() << "- Reading Settings: SourceFolder: "+srcFolder+".";
-    qWarning() << "- Reading Settings: TargetFolder: "+targetFolder+".";
+    //qWarning() << "- Reading Settings: SourceFolder: "+srcFolder+".";
+    //qWarning() << "- Reading Settings: TargetFolder: "+targetFolder+".";
 
-    textEdit->setPlainText("Source folder: "+srcFolder+"\n");
-    textEdit->moveCursor (QTextCursor::End);
-    textEdit->insertPlainText ("Target folder: "+targetFolder+"\n");
+    ui->le_sourceFolder->setText(srcFolder);
+    ui->le_targetFolder->setText(targetFolder);
+
+
+    //ui->textEdit->setPlainText("Source folder: "+srcFolder+"\n");
+    //ui->textEdit->moveCursor (QTextCursor::End);
+    //ui->textEdit->insertPlainText ("Target folder: "+targetFolder+"\n");
+
+    //qWarning() << "readSettings() finished";
 }
 
 
@@ -584,6 +586,7 @@ void MainWindow::writeSettings()
 // MOST LIKELY NO LONGER NEEDED
 // ########################################################################
 
+/*
 void MainWindow::documentWasModified()
 {
     //setWindowModified(textEdit->document()->isModified());
@@ -594,3 +597,5 @@ QString MainWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
 }
+*/
+

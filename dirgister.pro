@@ -1,16 +1,24 @@
-QT += widgets
+#-------------------------------------------------
+#
+# Project created by QtCreator 2015-10-04T14:04:10
+#
+#-------------------------------------------------
 
-HEADERS       = mainwindow.h
-SOURCES       = main.cpp \
-                mainwindow.cpp
+QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
 
 RESOURCES     = dirgister.qrc
 
 
-# fidel
-CONFIG += debug
+TARGET = dirgister
+TEMPLATE = app
 
 
-# install
-target.path = $$[QT_INSTALL_EXAMPLES]/widgets/mainwindows/application
-INSTALLS += target
+SOURCES += main.cpp\
+        mainwindow.cpp
+
+HEADERS  += mainwindow.h
+
+FORMS    += mainwindow.ui
