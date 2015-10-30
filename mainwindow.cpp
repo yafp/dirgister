@@ -15,11 +15,10 @@ MainWindow::MainWindow(QWidget *parent) :
     initValues();
     createActions();
     createMenus();
-    createToolBars();
+    //createToolBars();
     createStatusBar();
     readSettings();
-
-
+    checkingRequirements();
 
     // main UI
     connect(ui->bt_selectSource, SIGNAL(clicked()), this, SLOT(setSourceFolder()));
@@ -64,11 +63,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20151006.01";      // App Version String
+   appVersion = "20151030.01";      // App Version String
 
    ui->l_appTitle->setText("DirGister");
    ui->l_appVersion->setText(appVersion);
-   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer. It scans a source folder and writes a html-based index into a target-folder.\n");
+   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer.\n\nIt scans a source folder and writes a html-based browseable index into a user-defined target-folder.\n");
+   ui->rb_writeLog->setText("Enable log file creation");
 }
 
 
@@ -111,9 +111,8 @@ void MainWindow::setSourceFolder()
 
         writeSettings();
         resetLogUI();
+        checkingRequirements();
     }
-
-
 }
 
 
@@ -130,6 +129,7 @@ void MainWindow::setTargetFolder()
 
     writeSettings();
     resetLogUI();
+    checkingRequirements();
 }
 
 
@@ -141,26 +141,37 @@ void MainWindow::setTargetFolder()
 // ########################################################################
 
 
-// checks if the requirements are set to generate areport
+// checks if the requirements are set to generate a report
 void MainWindow::checkingRequirements()
 {
     checkSrc();
     checkTarget();
+
+    if((srcFolderExists == true) && (targetFolderExists == true)) // src & target exist
+    {
+        ui->bt_generateIndex->setEnabled(true);
+    }
+    else
+    {
+        ui->bt_generateIndex->setEnabled(false);
+    }
 }
 
 
 // Check if source exists
 void MainWindow::checkSrc()
 {
-    if(srcFolder != "")
+    if(srcFolder != "") // if a src folder is defined
     {
         if(QDir(srcFolder).exists())
         {
             srcFolderExists = true;
+
         }
         else
         {
             srcFolderExists = false;
+            ui->le_sourceFolder->setText(""); // reset UI
         }
     }
     else
@@ -180,12 +191,16 @@ void MainWindow::checkTarget()
         if(QDir(targetFolder).exists())
         {
              //qWarning() << "... Target folder already exists";
+             targetFolderExists = true;
         }
         else
         {
              //QDir().mkdir("/home/foobar");
+            qWarning() << "... Target folder does not exists";
+            targetFolderExists = false;
+            ui->le_targetFolder->setText(""); // reset UI
         }
-        targetFolderExists = true;
+
     }
     else
     {
@@ -206,13 +221,131 @@ void MainWindow::checkTarget()
 // ########################################################################
 
 
-// Creates an index.html showing all containing files and folders
+// User started index-generation process
+void MainWindow::userTriggeredGeneration()
+{
+    checkingRequirements();
+
+    if((targetFolderExists == true) & (srcFolderExists == true))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("<qt>DirGister is going to create an index for<br><b>"+srcFolder+"</b><br>in<br><b>"+targetFolder+"</b>.</qt>");
+        msgBox.setInformativeText("Do you want to proceed?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        int ret = msgBox.exec();
+
+        // handle user-answer
+        switch (ret)
+        {
+          case QMessageBox::Yes:
+          {
+                newTimestampString = generateTimestampString();
+                ui->textEdit->setPlainText(newTimestampString+ " - Started index generation\n\n");
+
+
+                // check if log file creation is enabled or not
+                if(ui->rb_writeLog->isChecked())
+                {
+                    logFileCreationEnabled=true;
+                    qWarning() << "Log File creation is enabled";
+                }
+                else
+                {
+                    logFileCreationEnabled=false;
+                }
+
+                // disable some UI items while index-generation is running
+                //
+                ui->le_sourceFolder->setEnabled(false);
+                ui->bt_selectSource->setEnabled(false);
+                ui->le_targetFolder->setEnabled(false);
+                ui->bt_selectTarget->setEnabled(false);
+                ui->rb_writeLog->setEnabled(false);             // disable the ui-item until index-generation is finished
+                ui->bt_generateIndex->setEnabled(false);        // disable generate-index-button
+
+
+                // start the index generation
+                createSingleHTMLIndex(srcFolder,targetFolder);
+
+
+                // If logging is enabled closing the log file
+                if(logFileCreationEnabled == true)
+                {
+                    // Generating Timestamp
+                    //QDateTime dateTime = dateTime.currentDateTime();
+                    //QString dateTimeString = dateTime.toString("yyyyMMdd-hhmmss");
+                    //
+                    newTimestampString = generateTimestampString();
+
+                    QString logfileName=targetFolder+"/"+ newTimestampString +"_DirGister_log.txt";
+                    QFile logFile( logfileName );
+
+                    if ( logFile.open(QIODevice::ReadWrite) )
+                    {
+                        // Create file
+                        QTextStream stream( &logFile );
+
+                        // deleting the former content
+                        logFile.write("");
+                        logFile.resize(logFile.pos());
+
+                        // get text from textedit
+                        QString logText = ui->textEdit->toPlainText();
+                        stream << logText;
+
+                        logFile.close();
+                    }
+                }
+
+
+
+                // re-enable the GUI items
+                ui->le_sourceFolder->setEnabled(true);
+                ui->bt_selectSource->setEnabled(true);
+                ui->le_targetFolder->setEnabled(true);
+                ui->bt_selectTarget->setEnabled(true);
+                ui->rb_writeLog->setEnabled(true);          // disable the ui-item until index-generation is finished
+                ui->bt_generateIndex->setEnabled(true);     // disable generate-index-button
+
+                ui->textEdit->moveCursor (QTextCursor::End);
+
+                newTimestampString = generateTimestampString();
+                ui->textEdit->insertPlainText (newTimestampString+" - Index generation finished.\n");
+
+                QMessageBox::StandardButton reply;
+                reply = QMessageBox::question(this, "Finished index generation", "Would you like to open and display it?",QMessageBox::Yes|QMessageBox::No);
+                if (reply == QMessageBox::Yes)
+                {
+                    QString link = targetFolder+"/index.html";
+                    QDesktopServices::openUrl(QUrl(link));
+                }
+                break;
+          }
+
+          case QMessageBox::No:
+                QMessageBox::about(this, tr("Aborted"),tr("You aborted the Index generation"));
+                break;
+
+          default:
+              // should never be reached
+              break;
+        }
+    }
+    else
+    {
+        qWarning() << "Error: stopped report generation cause of missing requirements";
+        QMessageBox::about(this, tr("Error"),tr("Requirements failed. Aborting."));
+    }
+}
+
+
+
+
+
+// Creates an index.html showing all containing files and folders for the folder/path submitted to the method
 void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder)
 {
-    // Generating Timestamp
-    QDateTime dateTime = dateTime.currentDateTime();
-    QString dateTimeString = dateTime.toString("yyyyMMdd-hhmmss");
-
     QString filename=targetFolder+"/index.html";
     QFile file( filename );
     if ( file.open(QIODevice::ReadWrite) )
@@ -348,8 +481,11 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 
         file.close();
 
+
         ui->textEdit->moveCursor (QTextCursor::End);
-        ui->textEdit->insertPlainText ("Creating: "+filename+"\n");
+
+        newTimestampString = generateTimestampString();
+        ui->textEdit->insertPlainText (newTimestampString+ "- Creating: "+filename+"\n");
         ui->textEdit->repaint();
 
 
@@ -357,8 +493,11 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         // Fedora: /etc/xdg/QtProject/qtlogging.ini
         // https://forum.qt.io/topic/54820/qt-qdebug-not-working-with-qconsoleapplication-or-qapplication/5
 
+
         checkSubDirs(currentPath, targetFolder);
     }
+
+
 }
 
 
@@ -367,7 +506,9 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 {
     ui->textEdit->moveCursor (QTextCursor::End);
-    ui->textEdit->insertPlainText ("Checking subdirectories of "+currentSubPath+"\n\n");
+
+    newTimestampString = generateTimestampString();
+    ui->textEdit->insertPlainText (newTimestampString+ "- Checking subdirectories of "+currentSubPath+"\n\n");
     ui->textEdit->repaint();
 
     QDir recoredDir(currentSubPath);
@@ -383,55 +524,10 @@ void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 
 
 
-//
-void MainWindow::userTriggeredGeneration()
-{
-    checkingRequirements();
 
-    if((targetFolderExists == true) & (srcFolderExists == true))
-    {
-        QMessageBox msgBox;
-        msgBox.setText("<qt>DirGister is going to create an index for<br><b>"+srcFolder+"</b><br>in<br><b>"+targetFolder+"</b>.</qt>");
-        msgBox.setInformativeText("Do you want to proceed?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-        int ret = msgBox.exec();
 
-        // handle user-answer
-        switch (ret)
-        {
-          case QMessageBox::Yes:
-                ui->textEdit->setPlainText("...started index generation\n\n");
 
-                createSingleHTMLIndex(srcFolder,targetFolder);
 
-                ui->textEdit->moveCursor (QTextCursor::End);
-                ui->textEdit->insertPlainText ("\n\nIndex generation finished.\n");
-
-                QMessageBox::StandardButton reply;
-                reply = QMessageBox::question(this, "Finished index generation", "Would you like to open and display it?",QMessageBox::Yes|QMessageBox::No);
-                if (reply == QMessageBox::Yes)
-                {
-                    QString link = targetFolder+"/index.html";
-                    QDesktopServices::openUrl(QUrl(link));
-                }
-                break;
-
-          case QMessageBox::No:
-                QMessageBox::about(this, tr("Aborted"),tr("You aborted the Index generation"));
-                break;
-
-          default:
-              // should never be reached
-              break;
-        }
-    }
-    else
-    {
-        qWarning() << "Error: stopped report generation cause of missing requirements";
-        QMessageBox::about(this, tr("Error"),tr("Requirements failed. Aborting."));
-    }
-}
 
 
 
@@ -470,12 +566,6 @@ void MainWindow::createActions()
     generateHTMLAct->setStatusTip(tr("Generates a new index for the selected folder"));
     connect(generateHTMLAct, SIGNAL(triggered()), this, SLOT(userTriggeredGeneration()));
 
-
-    aboutAct = new QAction(tr("&About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-
-
     aboutQtAct = new QAction(tr("About &Qt"), this);
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
@@ -499,7 +589,6 @@ void MainWindow::createMenus()
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
-    helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
 }
 
@@ -540,22 +629,11 @@ void MainWindow::readSettings()
     resize(size);
     move(pos);
 
-    //qWarning() << "loading settings";
     srcFolder = settings.value("srcFolder").toString();
     targetFolder = settings.value("targetFolder").toString();
 
-    //qWarning() << "- Reading Settings: SourceFolder: "+srcFolder+".";
-    //qWarning() << "- Reading Settings: TargetFolder: "+targetFolder+".";
-
     ui->le_sourceFolder->setText(srcFolder);
     ui->le_targetFolder->setText(targetFolder);
-
-
-    //ui->textEdit->setPlainText("Source folder: "+srcFolder+"\n");
-    //ui->textEdit->moveCursor (QTextCursor::End);
-    //ui->textEdit->insertPlainText ("Target folder: "+targetFolder+"\n");
-
-    //qWarning() << "readSettings() finished";
 }
 
 
@@ -582,20 +660,15 @@ void MainWindow::writeSettings()
 
 
 
+
+
 // ########################################################################
-// MOST LIKELY NO LONGER NEEDED
+// HELPER
 // ########################################################################
-
-/*
-void MainWindow::documentWasModified()
+QString MainWindow::generateTimestampString()
 {
-    //setWindowModified(textEdit->document()->isModified());
+    QDateTime dateTime = dateTime.currentDateTime();
+    QString dateTimeString = dateTime.toString("yyyyMMdd-hhmmss");
+
+    return dateTimeString;
 }
-
-
-QString MainWindow::strippedName(const QString &fullFileName)
-{
-    return QFileInfo(fullFileName).fileName();
-}
-*/
-

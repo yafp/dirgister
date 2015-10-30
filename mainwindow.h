@@ -32,7 +32,6 @@ private slots:
     void about();
     void initValues();
     void resetLogUI();
-    //void documentWasModified();
 
     void checkingRequirements();
     void checkSrc();
@@ -40,6 +39,7 @@ private slots:
     void userTriggeredGeneration();
     void createSingleHTMLIndex(QString currentPath,QString targetFolder);
     void checkSubDirs(QString currentSubPath, QString currentTarget);
+
 
 
 private:
@@ -50,6 +50,8 @@ private:
     void createStatusBar();
     void readSettings();
     void writeSettings();
+    QString generateTimestampString();
+
 
     QString strippedName(const QString &fullFileName);
     QPlainTextEdit *textEdit;
@@ -67,9 +69,12 @@ private:
     QAction *exitAct;
     QAction *generateHTMLAct;
     QAction *resetLogTextEditAct;
-    QAction *aboutAct;
     QAction *aboutQtAct;
 
+    QString newTimestampString;
+
+
+    bool logFileCreationEnabled;
     bool srcFolderExists;
     bool targetFolderExists;
 
