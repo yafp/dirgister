@@ -1,8 +1,6 @@
 # DirGister
 ... is a simple multi-platform directory indexer with html output
 
-
-##Screenshot
 ![ScreenShot](https://raw.githubusercontent.com/yafp/dirgister/master/docs/screenshot_mainui.png)
 
 
