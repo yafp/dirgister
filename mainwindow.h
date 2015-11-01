@@ -29,10 +29,8 @@ protected:
 private slots:
     void setSourceFolder();
     void setTargetFolder();
-    void about();
     void initValues();
     void resetLogUI();
-
     void checkingRequirements();
     void checkSrc();
     void checkTarget();
@@ -47,7 +45,7 @@ private:
     void createActions();
     void createMenus();
     void createToolBars();
-    void createStatusBar();
+    void updateStatusBar(QString statusMessage);
     void readSettings();
     void writeSettings();
     QString generateTimestampString();
@@ -59,16 +57,11 @@ private:
     QString appVersion;
     QString targetFolder;
     QString srcFolder;
+
     QMenu *fileMenu;
-    QMenu *editMenu;
     QMenu *helpMenu;
-    QToolBar *fileToolBar;
-    QToolBar *editToolBar;
-    QAction *setSourceFolderAct;
-    QAction *setTargetFolderAct;
+
     QAction *exitAct;
-    QAction *generateHTMLAct;
-    QAction *resetLogTextEditAct;
     QAction *aboutQtAct;
 
     QString newTimestampString;

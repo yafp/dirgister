@@ -9,9 +9,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-
     // Splashscreen
-    QPixmap pixmap(":/images/fa-list-alt_256_0_000000_none.png"); //Insert your splash page image here
+    QPixmap pixmap(":/images/splash.png"); //Insert your splash page image here
     if(pixmap.isNull())
     {
         QMessageBox::warning(0, "Error", "Failed to load Splash Screen image!");
@@ -19,12 +18,11 @@ int main(int argc, char *argv[])
     QSplashScreen splash(pixmap, Qt::WindowStaysOnTopHint);
     splash.setEnabled(false); //Prevent user from closing the splash
     splash.show();
-    splash.showMessage( "Starting DirGister ..." );
+    splash.showMessage( "<center>Starting DirGister ...</center>" );
 
     a.processEvents(); //Make sure splash screen gets drawn ASAP
     a.setOrganizationName("QtProject");
     a.setApplicationName("DirGister");
-
 
     MainWindow w;
 

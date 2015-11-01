@@ -1,9 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-	<file>images/iconGenerate.svg</file>
-	<file>images/iconSetSource.svg</file>
-	<file>images/iconSetTarget.svg</file>
-	<file>images/iconTrash.svg</file>
 	<file>images/fa-list-alt_256_0_000000_none.png</file>
+	<file>images/splash.png</file>
 </qresource>
 </RCC>

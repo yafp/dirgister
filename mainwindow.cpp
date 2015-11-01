@@ -13,36 +13,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     initValues();
+    resetLogUI();
     createActions();
     createMenus();
-    //createToolBars();
-    createStatusBar();
-    readSettings();
     checkingRequirements();
-
-    // main UI
-    connect(ui->bt_selectSource, SIGNAL(clicked()), this, SLOT(setSourceFolder()));
-    connect(ui->bt_selectTarget, SIGNAL(clicked()), this, SLOT(setTargetFolder()));
-    connect(ui->bt_generateIndex, SIGNAL(clicked()), this, SLOT(userTriggeredGeneration()));
-
-    // about UI
-    //
-    // Issues Link
-    ui->l_linkIssues->setText("<a href=\"https://github.com/yafp/dirgister/issues\">Issues</a>");
-    ui->l_linkIssues->setTextFormat(Qt::RichText);
-    ui->l_linkIssues->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    ui->l_linkIssues->setOpenExternalLinks(true);
-    // Wiki Link
-    ui->l_linkWiki->setText("<a href=\"https://github.com/yafp/dirgister/wiki\">Wiki</a>");
-    ui->l_linkWiki->setTextFormat(Qt::RichText);
-    ui->l_linkWiki->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    ui->l_linkWiki->setOpenExternalLinks(true);
-    // Source Link
-    ui->l_linkSource->setText("<a href=\"https://github.com/yafp/dirgister\">Source</a>");
-    ui->l_linkSource->setTextFormat(Qt::RichText);
-    ui->l_linkSource->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    ui->l_linkSource->setOpenExternalLinks(true);
-
+    updateStatusBar("DirGister initialized");
 }
 
 
@@ -56,36 +31,57 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     writeSettings();
-    //event->accept();
 }
 
 
 
 void MainWindow::initValues()
 {
-   appVersion = "20151030.01";      // App Version String
+   appVersion = "20151101.01";      // App Version String
 
    ui->l_appTitle->setText("DirGister");
    ui->l_appVersion->setText(appVersion);
-   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer.\n\nIt scans a source folder and writes a html-based browseable index into a user-defined target-folder.\n");
+   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder");
    ui->rb_writeLog->setText("Enable log file creation");
+   ui->l_logDescription->setText("<font color='grey'><i>The target folder will contain the related log including a timestamp in the filename.</i></font>");
+
+   // main UI
+   connect(ui->bt_selectSource, SIGNAL(clicked()), this, SLOT(setSourceFolder()));
+   connect(ui->bt_selectTarget, SIGNAL(clicked()), this, SLOT(setTargetFolder()));
+   connect(ui->bt_generateIndex, SIGNAL(clicked()), this, SLOT(userTriggeredGeneration()));
+
+   // about UI
+   //
+   // Issues Link
+   ui->l_linkIssues->setText("<a href=\"https://github.com/yafp/dirgister/issues\">Issues</a>");
+   ui->l_linkIssues->setTextFormat(Qt::RichText);
+   ui->l_linkIssues->setTextInteractionFlags(Qt::TextBrowserInteraction);
+   ui->l_linkIssues->setOpenExternalLinks(true);
+   // Wiki Link
+   ui->l_linkWiki->setText("<a href=\"https://github.com/yafp/dirgister/wiki\">Wiki</a>");
+   ui->l_linkWiki->setTextFormat(Qt::RichText);
+   ui->l_linkWiki->setTextInteractionFlags(Qt::TextBrowserInteraction);
+   ui->l_linkWiki->setOpenExternalLinks(true);
+   // Source Link
+   ui->l_linkSource->setText("<a href=\"https://github.com/yafp/dirgister\">Source</a>");
+   ui->l_linkSource->setTextFormat(Qt::RichText);
+   ui->l_linkSource->setTextInteractionFlags(Qt::TextBrowserInteraction);
+   ui->l_linkSource->setOpenExternalLinks(true);
+
+   // activate default-tab
+   ui->tabWidget->setCurrentIndex(0);
 }
-
-
-void MainWindow::about()
-{
-  // QMessageBox::about(this, tr("About DirGister"),tr("<h2>DirGister</h2><p>... is a simple directory indexer by Florian Poeck.</p><p>It outputs HTML based index files making the entire content of the source folder browseable.<p><h3>Development</h3><p>Source, issues etc on <a href='https://github.com/yafp/dirgister'>Github</a>.</p>"));
-}
-
 
 
 void MainWindow::resetLogUI()
 {
    ui->textEdit->clear();
+   ui->textEdit->setReadOnly(true);
+   ui->textEdit->setEnabled(false);
+   ui->textEdit->setText("<center><font color='grey' size='20'><br><b>DirGister Log</b></font></center>");
+
    readSettings();
 }
-
-
 
 
 
@@ -155,6 +151,7 @@ void MainWindow::checkingRequirements()
     {
         ui->bt_generateIndex->setEnabled(false);
     }
+    updateStatusBar("Finished checking requirements (source and target)");
 }
 
 
@@ -220,7 +217,6 @@ void MainWindow::checkTarget()
 // GENERATE
 // ########################################################################
 
-
 // User started index-generation process
 void MainWindow::userTriggeredGeneration()
 {
@@ -240,15 +236,25 @@ void MainWindow::userTriggeredGeneration()
         {
           case QMessageBox::Yes:
           {
-                newTimestampString = generateTimestampString();
-                ui->textEdit->setPlainText(newTimestampString+ " - Started index generation\n\n");
+                updateStatusBar("Started index generation");
+                resetLogUI();
 
+                ui->textEdit->setEnabled(true);     // makes text selectable again
+                ui->textEdit->setPlainText("");     //
+
+                newTimestampString = generateTimestampString();
+                ui->textEdit->insertPlainText(newTimestampString+ " - Started index generation for:\n");
+
+                newTimestampString = generateTimestampString();
+                ui->textEdit->insertPlainText(newTimestampString+ " - Source: "+ srcFolder +"\n");
+
+                newTimestampString = generateTimestampString();
+                ui->textEdit->insertPlainText(newTimestampString+ " - Target: "+ targetFolder +"\n\n");
 
                 // check if log file creation is enabled or not
                 if(ui->rb_writeLog->isChecked())
                 {
                     logFileCreationEnabled=true;
-                    qWarning() << "Log File creation is enabled";
                 }
                 else
                 {
@@ -264,26 +270,17 @@ void MainWindow::userTriggeredGeneration()
                 ui->rb_writeLog->setEnabled(false);             // disable the ui-item until index-generation is finished
                 ui->bt_generateIndex->setEnabled(false);        // disable generate-index-button
 
-
                 // start the index generation
                 createSingleHTMLIndex(srcFolder,targetFolder);
 
-
-                // If logging is enabled closing the log file
+                // If logging is enabled, copy content of UI-log to the log file
                 if(logFileCreationEnabled == true)
                 {
-                    // Generating Timestamp
-                    //QDateTime dateTime = dateTime.currentDateTime();
-                    //QString dateTimeString = dateTime.toString("yyyyMMdd-hhmmss");
-                    //
                     newTimestampString = generateTimestampString();
-
                     QString logfileName=targetFolder+"/"+ newTimestampString +"_DirGister_log.txt";
                     QFile logFile( logfileName );
-
                     if ( logFile.open(QIODevice::ReadWrite) )
                     {
-                        // Create file
                         QTextStream stream( &logFile );
 
                         // deleting the former content
@@ -298,21 +295,20 @@ void MainWindow::userTriggeredGeneration()
                     }
                 }
 
-
-
                 // re-enable the GUI items
                 ui->le_sourceFolder->setEnabled(true);
                 ui->bt_selectSource->setEnabled(true);
                 ui->le_targetFolder->setEnabled(true);
                 ui->bt_selectTarget->setEnabled(true);
-                ui->rb_writeLog->setEnabled(true);          // disable the ui-item until index-generation is finished
-                ui->bt_generateIndex->setEnabled(true);     // disable generate-index-button
+                ui->rb_writeLog->setEnabled(true);              // disable the ui-item until index-generation is finished
+                ui->bt_generateIndex->setEnabled(true);         // disable generate-index-button
 
-                ui->textEdit->moveCursor (QTextCursor::End);
+                ui->textEdit->moveCursor (QTextCursor::End);    // jump to end of UI-log-textedit
 
                 newTimestampString = generateTimestampString();
                 ui->textEdit->insertPlainText (newTimestampString+" - Index generation finished.\n");
 
+                // offer option to load the result index in default viewer
                 QMessageBox::StandardButton reply;
                 reply = QMessageBox::question(this, "Finished index generation", "Would you like to open and display it?",QMessageBox::Yes|QMessageBox::No);
                 if (reply == QMessageBox::Yes)
@@ -324,17 +320,21 @@ void MainWindow::userTriggeredGeneration()
           }
 
           case QMessageBox::No:
-                QMessageBox::about(this, tr("Aborted"),tr("You aborted the Index generation"));
-                break;
+                {
+                    QMessageBox::about(this, tr("Aborted"),tr("You aborted the Index generation"));
+                    break;
+                }
 
           default:
-              // should never be reached
-              break;
+                {
+                    // should never be reached
+                    break;
+                }
         }
     }
-    else
+    else // either src- or target-folder doesnt exist
     {
-        qWarning() << "Error: stopped report generation cause of missing requirements";
+        //qWarning() << "Error: stopped report generation cause of missing requirements";
         QMessageBox::about(this, tr("Error"),tr("Requirements failed. Aborting."));
     }
 }
@@ -384,9 +384,8 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         stream << "<div id='header'>";
         stream << "<h1><i class='fa fa-list-alt'></i>&nbsp;DirGister</h1>\n";
 
-
-        // nur auf den unterseiten
-        if(srcFolder != currentPath) // all sub-pages
+        // run the following part only on the sub-pages
+        if(srcFolder != currentPath) // on all sub-pages -> add a backlink-navigation to upper dir
         {
             stream << "<h3><a href='../index.html'><i class='fa fa-arrow-circle-left'></i></a>&nbsp;"+currentPath+"</h3>";
         }
@@ -485,19 +484,11 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         ui->textEdit->moveCursor (QTextCursor::End);
 
         newTimestampString = generateTimestampString();
-        ui->textEdit->insertPlainText (newTimestampString+ "- Creating: "+filename+"\n");
+        ui->textEdit->insertPlainText (newTimestampString+ "- Created index: "+filename+"\n");
         ui->textEdit->repaint();
-
-
-        // Issue on Fedora with qDebug()
-        // Fedora: /etc/xdg/QtProject/qtlogging.ini
-        // https://forum.qt.io/topic/54820/qt-qdebug-not-working-with-qconsoleapplication-or-qapplication/5
-
 
         checkSubDirs(currentPath, targetFolder);
     }
-
-
 }
 
 
@@ -541,30 +532,10 @@ void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 // Creating Menu Actions
 void MainWindow::createActions()
 {
-    setSourceFolderAct = new QAction(QIcon(":/images/iconSetSource.svg"), tr("Set source folder..."), this);
-    //setSourceFolderAct->setShortcuts(QKeySequence::SaveAs);
-    setSourceFolderAct->setStatusTip(tr("Select a source folder to index"));
-    connect(setSourceFolderAct, SIGNAL(triggered()), this, SLOT(setSourceFolder()));
-
-    setTargetFolderAct = new QAction(QIcon(":/images/iconSetTarget.svg"), tr("Set target folder..."), this);
-    //setSourceFolderAct->setShortcuts(QKeySequence::SaveAs);
-    setTargetFolderAct->setStatusTip(tr("Select a target folder for the index generation"));
-    connect(setTargetFolderAct, SIGNAL(triggered()), this, SLOT(setTargetFolder()));
-
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
-
-
-    resetLogTextEditAct = new QAction(QIcon(":/images/iconTrash.svg"), tr("Reset Log..."), this);
-    resetLogTextEditAct->setStatusTip(tr("Erases all log entries"));
-    connect(resetLogTextEditAct, SIGNAL(triggered()), this, SLOT(resetLogUI()));
-
-
-    generateHTMLAct = new QAction(QIcon(":/images/iconGenerate.svg"), tr("&Generate"), this);
-    generateHTMLAct->setStatusTip(tr("Generates a new index for the selected folder"));
-    connect(generateHTMLAct, SIGNAL(triggered()), this, SLOT(userTriggeredGeneration()));
 
     aboutQtAct = new QAction(tr("About &Qt"), this);
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
@@ -578,40 +549,11 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(exitAct);
 
-    editMenu = menuBar()->addMenu(tr("&Functios"));
-    editMenu->addAction(setSourceFolderAct);
-    editMenu->addAction(setTargetFolderAct);
-    editMenu->addSeparator();
-    editMenu->addAction(generateHTMLAct);
-    editMenu->addSeparator();
-    editMenu->addAction(resetLogTextEditAct);
-
-    menuBar()->addSeparator();
-
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutQtAct);
 }
 
 
-// Toolbars
-void MainWindow::createToolBars()
-{
-    //fileToolBar = addToolBar(tr("File"));
-    //fileToolBar->addAction(newAct);
-
-    editToolBar = addToolBar(tr("Edit"));
-    editToolBar->addAction(setSourceFolderAct);
-    editToolBar->addAction(setTargetFolderAct);
-    editToolBar->addAction(generateHTMLAct);
-    editToolBar->addAction(resetLogTextEditAct);
-}
-
-
-// Statusbar
-void MainWindow::createStatusBar()
-{
-    statusBar()->showMessage(tr("Ready"));
-}
 
 
 
@@ -634,8 +576,9 @@ void MainWindow::readSettings()
 
     ui->le_sourceFolder->setText(srcFolder);
     ui->le_targetFolder->setText(targetFolder);
-}
 
+    updateStatusBar("Settings read");
+}
 
 
 
@@ -654,9 +597,9 @@ void MainWindow::writeSettings()
     {
        settings.setValue("targetFolder", targetFolder);
     }
+
+    updateStatusBar("Settings written");
 }
-
-
 
 
 
@@ -665,10 +608,19 @@ void MainWindow::writeSettings()
 // ########################################################################
 // HELPER
 // ########################################################################
+//
+// generates and returns a timestamp (yyyyMMdd-hhmmss) as string
 QString MainWindow::generateTimestampString()
 {
     QDateTime dateTime = dateTime.currentDateTime();
     QString dateTimeString = dateTime.toString("yyyyMMdd-hhmmss");
 
     return dateTimeString;
+}
+
+
+// Writtes a message to the app statusbar for x seconds
+void MainWindow::updateStatusBar(QString statusMessage)
+{
+    statusBar()->showMessage(statusMessage,3000);
 }

@@ -22,3 +22,9 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
+
+
+# app icon
+#
+RC_FILE = dirgister.rc          # Windows
+ICON = dirgister.icns           # Mac
