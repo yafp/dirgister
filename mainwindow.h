@@ -34,12 +34,12 @@ private slots:
     void resetLogUI();
     void checkingRequirements();
     void checkSrc();
+    void resetSrc();
     void checkTarget();
+    void resetTarget();
     void userTriggeredGeneration();
     void createSingleHTMLIndex(QString currentPath,QString targetFolder);
     void checkSubDirs(QString currentSubPath, QString currentTarget);
-
-
 
 private:
     Ui::MainWindow *ui;
@@ -52,13 +52,16 @@ private:
     QString generateTimestampString();
 
 
-    QString strippedName(const QString &fullFileName);
+    //QString strippedName(const QString &fullFileName);
     QTextEdit *textEdit;
-    QString curFile;
+    //QString curFile;
+
     QString appVersion;
+    QString appName;
+
+    QString srcFolder;
     QString targetFolder;
     QString oldTargetFolder;
-    QString srcFolder;
 
     QMenu *fileMenu;
     QMenu *helpMenu;
@@ -68,12 +71,9 @@ private:
 
     QString newTimestampString;
 
-
     bool logFileCreationEnabled;
     bool srcFolderExists;
     bool targetFolderExists;
-
-
 };
 
 #endif // MAINWINDOW_H

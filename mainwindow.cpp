@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
 #include <QtWidgets>
 #include "mainwindow.h"
 #include <QDebug>
@@ -38,7 +37,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20151101.04";      // App Version String
+   appVersion = "20151101.05";      // App Version
+   appName = "DirGister";           // App Name
+
+   this->setWindowTitle(appName + " ("+ appVersion +")");
+
 
    // TAB: main
    //
@@ -51,11 +54,26 @@ void MainWindow::initValues()
    ui->rb_writeLog->setText("Enable log file creation");
    ui->l_logDescription->setText("<font color='grey'><i>The target folder will contain the generated log</i></font>");
 
+    // reset source
+   QPixmap pixmap(":/images/fa-trash-o_128_0_000000_none.png");
+   QIcon ButtonIcon(pixmap);
+   ui->tb_resetSource->setIcon(ButtonIcon);
+   connect(ui->tb_resetSource, SIGNAL(clicked()), this, SLOT(resetSrc()));
+   //ui->tb_resetSource->setIconSize(pixmap.rect().size());
+   ui->tb_resetTarget->setIcon(ButtonIcon);
+   connect(ui->tb_resetTarget, SIGNAL(clicked()), this, SLOT(resetTarget()));
+
+   QPixmap pixmap4GenerateButton(":/images/fa-pencil_128_0_000000_none.png");
+   QIcon ButtonIcon4GenerateButton(pixmap4GenerateButton);
+   ui->bt_generateIndex->setIcon(ButtonIcon4GenerateButton);
+
+
+
    // TAB: about
    //
-   ui->l_appTitle->setText("DirGister");
+   ui->l_appTitle->setText(appName);
    ui->l_appVersion->setText(appVersion);
-   ui->pte_aboutText->insertPlainText ("DirGister is a multi-platform directory indexer written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder");
+   ui->pte_aboutText->insertPlainText ("DirGister is a multi-platform directory indexer with HTML output written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder\n\n\nDeveloped under MIT license.");
    // Issues Link
    ui->l_linkIssues->setText("<a href=\"https://github.com/yafp/dirgister/issues\">Issues</a>");
    ui->l_linkIssues->setTextFormat(Qt::RichText);
@@ -82,8 +100,8 @@ void MainWindow::resetLogUI()
    ui->textEdit->clear();
    ui->textEdit->setReadOnly(true);
    ui->textEdit->setEnabled(false);
-   ui->textEdit->setText("<center><font color='grey' size='20'><br><b>DirGister Log</b></font></center>");
-   ui->textEdit->setStyleSheet("QTextEdit { background-color: rgb(211, 211, 211) }");
+   ui->textEdit->setText("<center><font color='Lightgray' size='20'><br><b>DirGister Log</b></font></center>");
+   ui->textEdit->setStyleSheet("QTextEdit { background-color: rgb(220, 220, 220) }");
 
    //readSettings();
 }
@@ -144,12 +162,35 @@ void MainWindow::setTargetFolder()
 
 
 
+// ########################################################################
+// USER resets SOURCE and/or TARGET
+// ########################################################################
+
+// User resets the source folder
+void MainWindow::resetSrc()
+{
+    srcFolder = "";
+    ui->le_sourceFolder->setText("");
+    checkingRequirements();
+    writeSettings();
+}
+
+// User resets the target folder
+void MainWindow::resetTarget()
+{
+    targetFolder = "";
+    ui->le_targetFolder->setText("");
+    checkingRequirements();
+    writeSettings();
+}
+
+
+
 
 
 // ########################################################################
 // PRE - CHECKING REQUIREMENTS
 // ########################################################################
-
 
 // checks if the requirements are set to generate a report
 void MainWindow::checkingRequirements()
@@ -187,7 +228,7 @@ void MainWindow::checkSrc()
     }
     else
     {
-        QMessageBox::about(this, tr("Error"),tr("Source folder is not defined yet."));
+        //QMessageBox::about(this, tr("Error"),tr("Source folder is not defined yet."));
         srcFolderExists = false;
     }
 }
@@ -206,8 +247,7 @@ void MainWindow::checkTarget()
         }
         else
         {
-             //QDir().mkdir("/home/foobar");
-            qWarning() << "... Target folder does not exists";
+            //qWarning() << "... Target folder does not exists";
             targetFolderExists = false;
             ui->le_targetFolder->setText(""); // reset UI
         }
@@ -215,7 +255,7 @@ void MainWindow::checkTarget()
     }
     else
     {
-        QMessageBox::about(this, tr("Error"),tr("Target folder is not defined yet."));
+        //QMessageBox::about(this, tr("Error"),tr("Target folder is not defined yet."));
         targetFolderExists = false;
     }
 
@@ -252,7 +292,7 @@ void MainWindow::userTriggeredGeneration()
           {
                 updateStatusBar("Started index generation");
                 resetLogUI();
-
+                ui->textEdit->clear();              // to overwrite the fontsettings of resetLogUI
                 ui->textEdit->setEnabled(true);     // makes text selectable again
                 ui->textEdit->setPlainText("");     //
 
@@ -289,8 +329,6 @@ void MainWindow::userTriggeredGeneration()
                 newTimestampString = generateTimestampString();
                 targetFolder = targetFolder+"/"+newTimestampString+"_DirGister_Index";
                 QDir().mkdir(targetFolder);
-
-
 
                 // start the index generation
                 createSingleHTMLIndex(srcFolder,targetFolder);
@@ -362,7 +400,6 @@ void MainWindow::userTriggeredGeneration()
         QMessageBox::about(this, tr("Error"),tr("Requirements failed. Aborting."));
     }
 }
-
 
 
 
@@ -578,6 +615,7 @@ void MainWindow::createMenus()
 // READ and WRITE SETTINGS
 // ########################################################################
 
+// load the app-settings/values
 void MainWindow::readSettings()
 {
     QSettings settings("QtProject", "Dirgister");
@@ -596,22 +634,14 @@ void MainWindow::readSettings()
 }
 
 
-
+// write/store the app-settings/values
 void MainWindow::writeSettings()
 {
     QSettings settings("QtProject", "Dirgister");
     settings.setValue("pos", pos());
     settings.setValue("size", size());
-
-    if(srcFolder != "")
-    {
-        settings.setValue("srcFolder", srcFolder);
-    }
-
-    if(targetFolder != "")
-    {
-       settings.setValue("targetFolder", targetFolder);
-    }
+    settings.setValue("srcFolder", srcFolder);
+    settings.setValue("targetFolder", targetFolder);
 
     updateStatusBar("Settings written");
 }
@@ -634,7 +664,7 @@ QString MainWindow::generateTimestampString()
 }
 
 
-// Writtes a message to the app statusbar for x seconds
+// Writes a message to the app statusbar for x seconds
 void MainWindow::updateStatusBar(QString statusMessage)
 {
     statusBar()->showMessage(statusMessage,3000);
