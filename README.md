@@ -7,7 +7,7 @@
 
 
 ## Resources
-- Application Icon from font-awesome (fa-list-alt)
+Application Icon from font-awesome (fa-list-alt)
 
 > https://fortawesome.github.io/Font-Awesome/
 
