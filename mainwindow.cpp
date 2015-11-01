@@ -38,7 +38,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20151101.03";      // App Version String
+   appVersion = "20151101.04";      // App Version String
 
    // TAB: main
    //
@@ -49,13 +49,13 @@ void MainWindow::initValues()
    ui->le_sourceFolder->setDisabled(true);
    ui->le_targetFolder->setDisabled(true);
    ui->rb_writeLog->setText("Enable log file creation");
-   ui->l_logDescription->setText("<font color='grey'><i>The target folder will contain the related log including a timestamp in the filename.</i></font>");
+   ui->l_logDescription->setText("<font color='grey'><i>The target folder will contain the generated log</i></font>");
 
    // TAB: about
    //
    ui->l_appTitle->setText("DirGister");
    ui->l_appVersion->setText(appVersion);
-   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder");
+   ui->pte_aboutText->insertPlainText ("DirGister is a multi-platform directory indexer written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder");
    // Issues Link
    ui->l_linkIssues->setText("<a href=\"https://github.com/yafp/dirgister/issues\">Issues</a>");
    ui->l_linkIssues->setTextFormat(Qt::RichText);
