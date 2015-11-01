@@ -1,6 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 	<file>images/fa-list-alt_256_0_000000_none.png</file>
+	<file>images/fa-pencil_128_0_000000_none.png</file>
+	<file>images/fa-trash-o_128_0_000000_none.png</file>
 	<file>images/splash.png</file>
 </qresource>
 </RCC>
