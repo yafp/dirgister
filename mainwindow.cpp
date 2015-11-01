@@ -37,7 +37,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20151101.01";      // App Version String
+   appVersion = "20151101.02";      // App Version String
 
    ui->l_appTitle->setText("DirGister");
    ui->l_appVersion->setText(appVersion);
