@@ -37,7 +37,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20151101.05";      // App Version
+   appVersion = "20151101.06";      // App Version
    appName = "DirGister";           // App Name
 
    this->setWindowTitle(appName + " ("+ appVersion +")");
@@ -325,6 +325,7 @@ void MainWindow::userTriggeredGeneration()
                 ui->bt_generateIndex->setEnabled(false);        // disable generate-index-button
 
 
+                // create a new target folder in the user-defined target-folder
                 oldTargetFolder =targetFolder;
                 newTimestampString = generateTimestampString();
                 targetFolder = targetFolder+"/"+newTimestampString+"_DirGister_Index";
@@ -364,9 +365,9 @@ void MainWindow::userTriggeredGeneration()
                 ui->bt_generateIndex->setEnabled(true);         // disable generate-index-button
 
                 ui->textEdit->moveCursor (QTextCursor::End);    // jump to end of UI-log-textedit
-
                 newTimestampString = generateTimestampString();
-                ui->textEdit->insertPlainText (newTimestampString+" - Index generation finished.\n");
+                ui->textEdit->insertPlainText ("\n"+newTimestampString+" - Index generation finished.\n");
+                ui->textEdit->moveCursor (QTextCursor::End);    // jump to end of UI-log-textedit
 
                 // offer option to load the result index in default viewer
                 QMessageBox::StandardButton reply;
@@ -376,7 +377,7 @@ void MainWindow::userTriggeredGeneration()
                     QString link = targetFolder+"/index.html";
                     QDesktopServices::openUrl(QUrl(link));
                 }
-                targetFolder =oldTargetFolder;
+                targetFolder = oldTargetFolder; // revert to old content -> targetFolder
 
                 break;
           }
@@ -407,6 +408,11 @@ void MainWindow::userTriggeredGeneration()
 // Creates an index.html showing all containing files and folders for the folder/path submitted to the method
 void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder)
 {
+    // write log
+    ui->textEdit->moveCursor (QTextCursor::End);
+    newTimestampString = generateTimestampString();
+    ui->textEdit->insertPlainText ("\n"+newTimestampString+ "- Indexing: "+currentPath+"\n");
+
     QString filename=targetFolder+"/index.html";
     QFile file( filename );
     if ( file.open(QIODevice::ReadWrite) )
@@ -428,6 +434,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         stream << "<head>\n";
         stream << "<meta charset='UTF-8'>";
         stream << "<title>DirGister</title>\n";
+        stream << "<link rel='shortcut icon'' type='image/png'' href='https://raw.githubusercontent.com/yafp/dirgister/master/dirgister.ico'/>\n";
         stream << "<script src='//code.jquery.com/jquery-1.11.3.min.js'></script>\n";
         stream << "<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css'>\n";
         stream << "<style>";
@@ -457,7 +464,8 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         stream << "</div>"; // close header div
         stream << "<div id='content'>";
 
-
+        // Handle folders
+        //
         if(allFolders.count() ==  0) // no folders
         {
             //qWarning() << "no folders found";
@@ -478,10 +486,17 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
                 newTarget = targetFolder+"/"+QString("%1").arg(str);
 
                 QDir().mkdir(newTarget);
+
+                // write log
+                ui->textEdit->moveCursor (QTextCursor::End);
+                newTimestampString = generateTimestampString();
+                ui->textEdit->insertPlainText (newTimestampString+ "- Found folder: "+str+"\n");
             }
         }
 
 
+        // Handle files
+        //
         if(allFiles.count() ==  0) // no files
         {
             //qWarning() << "no files found";
@@ -533,6 +548,11 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
                 stream << icon+"&nbsp;";
                 stream << QString("%1").arg(str);
                 stream << "<br>\n";
+
+                // write log
+                ui->textEdit->moveCursor (QTextCursor::End);
+                newTimestampString = generateTimestampString();
+                ui->textEdit->insertPlainText (newTimestampString+ "- Found file: "+currentFile+"\n");
             }
         }
         stream << "</div>"; // close the content div
@@ -558,9 +578,8 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 {
     ui->textEdit->moveCursor (QTextCursor::End);
-
     newTimestampString = generateTimestampString();
-    ui->textEdit->insertPlainText (newTimestampString+ "- Checking subdirectories of "+currentSubPath+"\n\n");
+    ui->textEdit->insertPlainText (newTimestampString+ "- Checking subdirectories of "+currentSubPath+"\n");
     ui->textEdit->repaint();
 
     QDir recoredDir(currentSubPath);
