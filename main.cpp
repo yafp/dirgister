@@ -24,7 +24,10 @@ int main(int argc, char *argv[])
     a.setOrganizationName("QtProject");
     a.setApplicationName("DirGister");
 
+
     MainWindow w;
+
+    w.setWindowTitle("DirGister");
 
     QTimer::singleShot(1000, &splash, SLOT(close()));
     QTimer::singleShot(1000, &w, SLOT(show()));
