@@ -8,6 +8,10 @@ Please check the project page at:
 for more details
 
 
+##Screenshot
+![ScreenShot](https://raw.githubusercontent.com/yafp/dirgister/master/docs/screenshot_mainui.png)
+
+
 ## Resources
 - Application Icon from font-awesome (fa-list-alt)
    https://fortawesome.github.io/Font-Awesome/
