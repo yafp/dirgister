@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     resetLogUI();
     createActions();
     createMenus();
+    readSettings();
     checkingRequirements();
     updateStatusBar("DirGister initialized");
 }
@@ -37,21 +38,24 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::initValues()
 {
-   appVersion = "20151101.02";      // App Version String
+   appVersion = "20151101.03";      // App Version String
 
-   ui->l_appTitle->setText("DirGister");
-   ui->l_appVersion->setText(appVersion);
-   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder");
-   ui->rb_writeLog->setText("Enable log file creation");
-   ui->l_logDescription->setText("<font color='grey'><i>The target folder will contain the related log including a timestamp in the filename.</i></font>");
-
-   // main UI
+   // TAB: main
+   //
    connect(ui->bt_selectSource, SIGNAL(clicked()), this, SLOT(setSourceFolder()));
    connect(ui->bt_selectTarget, SIGNAL(clicked()), this, SLOT(setTargetFolder()));
    connect(ui->bt_generateIndex, SIGNAL(clicked()), this, SLOT(userTriggeredGeneration()));
 
-   // about UI
+   ui->le_sourceFolder->setDisabled(true);
+   ui->le_targetFolder->setDisabled(true);
+   ui->rb_writeLog->setText("Enable log file creation");
+   ui->l_logDescription->setText("<font color='grey'><i>The target folder will contain the related log including a timestamp in the filename.</i></font>");
+
+   // TAB: about
    //
+   ui->l_appTitle->setText("DirGister");
+   ui->l_appVersion->setText(appVersion);
+   ui->pte_aboutText->insertPlainText ("DirGister is a multiplattform directory indexer written by Florian Poeck.\n\nHow it works:\n- You define a source folder and a target folder\n- It scans the source folder and\n- writes a html-based browseable index into the target-folder");
    // Issues Link
    ui->l_linkIssues->setText("<a href=\"https://github.com/yafp/dirgister/issues\">Issues</a>");
    ui->l_linkIssues->setTextFormat(Qt::RichText);
@@ -68,7 +72,7 @@ void MainWindow::initValues()
    ui->l_linkSource->setTextInteractionFlags(Qt::TextBrowserInteraction);
    ui->l_linkSource->setOpenExternalLinks(true);
 
-   // activate default-tab
+   // set default-tab
    ui->tabWidget->setCurrentIndex(0);
 }
 
@@ -79,8 +83,9 @@ void MainWindow::resetLogUI()
    ui->textEdit->setReadOnly(true);
    ui->textEdit->setEnabled(false);
    ui->textEdit->setText("<center><font color='grey' size='20'><br><b>DirGister Log</b></font></center>");
+   ui->textEdit->setStyleSheet("QTextEdit { background-color: rgb(211, 211, 211) }");
 
-   readSettings();
+   //readSettings();
 }
 
 
@@ -115,17 +120,26 @@ void MainWindow::setSourceFolder()
 // User defines a target folder - should be writable
 void MainWindow::setTargetFolder()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Select target for Index"),"/home",QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QFileInfo userdefinedDir = QFileDialog::getExistingDirectory(this, tr("Select target for Index"),"/home",QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    ui->textEdit->moveCursor (QTextCursor::End);
-    ui->textEdit->insertPlainText ("Target folder set to: "+dir+"\n");
+    if(userdefinedDir.isDir() && userdefinedDir.isWritable()) // check user-selected input-folder
+    {
+        QString dir = userdefinedDir.absoluteFilePath();
 
-    targetFolder = dir;
-    ui->le_targetFolder->setText(dir);
+        targetFolder = dir;
+        ui->le_targetFolder->setText(dir);
 
-    writeSettings();
-    resetLogUI();
-    checkingRequirements();
+        writeSettings();
+        resetLogUI();
+        checkingRequirements();
+
+    }
+    else // is not writeable
+    {
+
+        //qWarning() << "not writable";
+        QMessageBox::about(this, tr("Error"),tr("Target folder is not writeable"));
+    }
 }
 
 
@@ -270,6 +284,14 @@ void MainWindow::userTriggeredGeneration()
                 ui->rb_writeLog->setEnabled(false);             // disable the ui-item until index-generation is finished
                 ui->bt_generateIndex->setEnabled(false);        // disable generate-index-button
 
+
+                oldTargetFolder =targetFolder;
+                newTimestampString = generateTimestampString();
+                targetFolder = targetFolder+"/"+newTimestampString+"_DirGister_Index";
+                QDir().mkdir(targetFolder);
+
+
+
                 // start the index generation
                 createSingleHTMLIndex(srcFolder,targetFolder);
 
@@ -316,6 +338,8 @@ void MainWindow::userTriggeredGeneration()
                     QString link = targetFolder+"/index.html";
                     QDesktopServices::openUrl(QUrl(link));
                 }
+                targetFolder =oldTargetFolder;
+
                 break;
           }
 
@@ -518,13 +542,6 @@ void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 
 
 
-
-
-
-
-
-
-
 // ########################################################################
 // MENU, ACTIONS, TOOLBARS and STATUSBAR
 // ########################################################################
@@ -552,8 +569,6 @@ void MainWindow::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutQtAct);
 }
-
-
 
 
 

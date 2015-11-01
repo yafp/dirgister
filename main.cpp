@@ -18,11 +18,12 @@ int main(int argc, char *argv[])
     QSplashScreen splash(pixmap, Qt::WindowStaysOnTopHint);
     splash.setEnabled(false); //Prevent user from closing the splash
     splash.show();
-    splash.showMessage( "<center>Starting DirGister ...</center>" );
+    //splash.showMessage( "Starting DirGister ..." );
 
     a.processEvents(); //Make sure splash screen gets drawn ASAP
     a.setOrganizationName("QtProject");
     a.setApplicationName("DirGister");
+    a.setWindowIcon(QIcon(":/images/fa-list-alt_256_0_000000_none.png"));
 
 
     MainWindow w;

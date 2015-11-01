@@ -7,7 +7,8 @@
 QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
-class QPlainTextEdit;
+//class QPlainTextEdit;
+class QTextEdit;
 QT_END_NAMESPACE
 
 
@@ -52,10 +53,11 @@ private:
 
 
     QString strippedName(const QString &fullFileName);
-    QPlainTextEdit *textEdit;
+    QTextEdit *textEdit;
     QString curFile;
     QString appVersion;
     QString targetFolder;
+    QString oldTargetFolder;
     QString srcFolder;
 
     QMenu *fileMenu;
