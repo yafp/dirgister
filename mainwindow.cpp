@@ -3,6 +3,7 @@
 #include <QtWidgets>
 #include "mainwindow.h"
 #include <QDebug>
+#include <QPalette>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -37,7 +38,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 // Init some variables & UI-elements on app start
 void MainWindow::initValues()
 {
-   appVersion = "20151103.01";      // App Version
+   appVersion = "20151103.02";      // App Version
    appName = "DirGister";           // App Name
 
    this->setWindowTitle(appName + " ("+ appVersion +")");
@@ -66,8 +67,6 @@ void MainWindow::initValues()
    QPixmap pixmap4GenerateButton(":/images/fa-pencil_128_0_000000_none.png");
    QIcon ButtonIcon4GenerateButton(pixmap4GenerateButton);
    ui->bt_generateIndex->setIcon(ButtonIcon4GenerateButton);
-
-
 
    // TAB: about
    //
@@ -103,7 +102,7 @@ void MainWindow::resetLogUI()
    ui->textEdit->clear();
    ui->textEdit->setReadOnly(true);
    ui->textEdit->setEnabled(false);
-   ui->textEdit->setText("<center><font color='Lightgray' size='20'><br><b>DirGister Log</b></font></center>");
+   ui->textEdit->setText("<center><img src=':/images/fa-list-alt_256_0_d3d3d3_none.png' width='96'><font color='Lightgray' size='20'><br><b>DirGister Log</b></font></center>");
    ui->textEdit->setStyleSheet("QTextEdit { background-color: rgb(220, 220, 220) }");
 }
 
