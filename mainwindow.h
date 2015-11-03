@@ -3,14 +3,11 @@
 
 #include <QMainWindow>
 
-
 QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
-//class QPlainTextEdit;
 class QTextEdit;
 QT_END_NAMESPACE
-
 
 namespace Ui {
 class MainWindow;
@@ -52,9 +49,7 @@ private:
     QString generateTimestampString();
 
 
-    //QString strippedName(const QString &fullFileName);
     QTextEdit *textEdit;
-    //QString curFile;
 
     QString appVersion;
     QString appName;

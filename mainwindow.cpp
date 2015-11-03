@@ -34,10 +34,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 
-
+// Init some variables & UI-elements on app start
 void MainWindow::initValues()
 {
-   appVersion = "20151101.06";      // App Version
+   appVersion = "20151103.01";      // App Version
    appName = "DirGister";           // App Name
 
    this->setWindowTitle(appName + " ("+ appVersion +")");
@@ -95,6 +95,9 @@ void MainWindow::initValues()
 }
 
 
+
+// Reset the log textedit
+//
 void MainWindow::resetLogUI()
 {
    ui->textEdit->clear();
@@ -102,8 +105,6 @@ void MainWindow::resetLogUI()
    ui->textEdit->setEnabled(false);
    ui->textEdit->setText("<center><font color='Lightgray' size='20'><br><b>DirGister Log</b></font></center>");
    ui->textEdit->setStyleSheet("QTextEdit { background-color: rgb(220, 220, 220) }");
-
-   //readSettings();
 }
 
 
@@ -218,7 +219,6 @@ void MainWindow::checkSrc()
         if(QDir(srcFolder).exists())
         {
             srcFolderExists = true;
-
         }
         else
         {
@@ -228,7 +228,6 @@ void MainWindow::checkSrc()
     }
     else
     {
-        //QMessageBox::about(this, tr("Error"),tr("Source folder is not defined yet."));
         srcFolderExists = false;
     }
 }
@@ -242,23 +241,18 @@ void MainWindow::checkTarget()
     {
         if(QDir(targetFolder).exists())
         {
-             //qWarning() << "... Target folder already exists";
              targetFolderExists = true;
         }
         else
         {
-            //qWarning() << "... Target folder does not exists";
             targetFolderExists = false;
             ui->le_targetFolder->setText(""); // reset UI
         }
-
     }
     else
     {
-        //QMessageBox::about(this, tr("Error"),tr("Target folder is not defined yet."));
         targetFolderExists = false;
     }
-
 }
 
 
@@ -397,7 +391,6 @@ void MainWindow::userTriggeredGeneration()
     }
     else // either src- or target-folder doesnt exist
     {
-        //qWarning() << "Error: stopped report generation cause of missing requirements";
         QMessageBox::about(this, tr("Error"),tr("Requirements failed. Aborting."));
     }
 }
@@ -419,8 +412,10 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
     {
         QDir recoredDir(currentPath);
 
-        QStringList allFolders = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs);//(QDir::Filter::Files,QDir::SortFlag::NoSort)
-        QStringList allFiles = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::Files);//(QDir::Filter::Files,QDir::SortFlag::NoSort)
+        QStringList allFolders = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs);     //(QDir::Filter::Files,QDir::SortFlag::NoSort)
+        //QStringList allFiles = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::Files);         //(QDir::Filter::Files,QDir::SortFlag::NoSort)
+
+
 
         // Create file
         QTextStream stream( &file );
@@ -466,11 +461,7 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 
         // Handle folders
         //
-        if(allFolders.count() ==  0) // no folders
-        {
-            //qWarning() << "no folders found";
-        }
-        else
+        if(allFolders.count() !=  0) // found folders
         {
             stream << "<h2><i class='fa fa-folder'></i>&nbsp;Folders ("+QString::number(allFolders.count())+")</h2>\n";
             QString newTarget;
@@ -495,22 +486,23 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
         }
 
 
-        // Handle files
-        //
-        if(allFiles.count() ==  0) // no files
+
+        // new handling all files in the current dir
+        QFileInfoList list = recoredDir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::Files);
+
+        if(list.size() > 0)
         {
-            //qWarning() << "no files found";
-        }
-        else
-        {
-            stream << "<h2><i class='fa fa-file'></i>&nbsp;Files ("+QString::number(allFiles.count())+")</h2>\n";
-            foreach (QString str, allFiles)
+            stream << "<h2><i class='fa fa-file'></i>&nbsp; Files ("+QString::number(list.size())+")</h2>\n";
+
+            for (int i = 0; i < list.size(); ++i)
             {
+                QFileInfo fileInfo = list.at(i);
+
                 QString icon = "";
-                QString currentFile = QString("%1").arg(str);
+                QString currentFile = fileInfo.fileName();
 
                 // typ: audio
-                if((currentFile.contains(".mp3")) | (currentFile.contains(".wav")))
+                if((currentFile.contains(".mp3")) | (currentFile.contains(".wav")) | (currentFile.contains(".flac")) | (currentFile.contains(".")))
                 {
                     icon = "<i class='fa fa-music'></i>";
                 }
@@ -546,25 +538,34 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
                 }
 
                 stream << icon+"&nbsp;";
-                stream << QString("%1").arg(str);
+                stream << fileInfo.fileName();
                 stream << "<br>\n";
+                stream << "<small>Size: ";
+                stream << fileInfo.size()/1024/1024;
+                stream << " MB</small>";
+                stream << "<br><br>\n";
+
 
                 // write log
                 ui->textEdit->moveCursor (QTextCursor::End);
                 newTimestampString = generateTimestampString();
                 ui->textEdit->insertPlainText (newTimestampString+ "- Found file: "+currentFile+"\n");
-            }
+
+                //qWarning() << fileInfo.absoluteFilePath();
+                //qWarning() << fileInfo.fileName();
+                //qWarning() << fileInfo.size();
+                //qWarning() << "-------";
+             }
         }
+
         stream << "</div>"; // close the content div
         stream << "</body>\n";
         stream << "</html>\n";
 
         file.close();
 
-
-        ui->textEdit->moveCursor (QTextCursor::End);
-
         newTimestampString = generateTimestampString();
+        ui->textEdit->moveCursor (QTextCursor::End);
         ui->textEdit->insertPlainText (newTimestampString+ "- Created index: "+filename+"\n");
         ui->textEdit->repaint();
 
@@ -577,8 +578,8 @@ void MainWindow::createSingleHTMLIndex(QString currentPath, QString targetFolder
 //  check subdirectories of current folder
 void MainWindow::checkSubDirs(QString currentSubPath, QString currentTargetPath)
 {
-    ui->textEdit->moveCursor (QTextCursor::End);
     newTimestampString = generateTimestampString();
+    ui->textEdit->moveCursor (QTextCursor::End);
     ui->textEdit->insertPlainText (newTimestampString+ "- Checking subdirectories of "+currentSubPath+"\n");
     ui->textEdit->repaint();
 
@@ -667,8 +668,6 @@ void MainWindow::writeSettings()
 
 
 
-
-
 // ########################################################################
 // HELPER
 // ########################################################################
@@ -681,7 +680,6 @@ QString MainWindow::generateTimestampString()
 
     return dateTimeString;
 }
-
 
 // Writes a message to the app statusbar for x seconds
 void MainWindow::updateStatusBar(QString statusMessage)
