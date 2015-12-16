@@ -1,3 +1,6 @@
+![Logo](https://raw.githubusercontent.com/yafp/dirgister/master/images/fa-list-alt_256_0_000000_none.png)
+
+
 # DirGister
 ... is a simple multi-platform directory indexer with html output
 
@@ -14,5 +17,5 @@ Application Icon from font-awesome (fa-list-alt)
 Please check the project page at:
 
 > https://github.com/yafp/dirgister
-   
+
 for more details
