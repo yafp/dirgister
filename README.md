@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/yafp/dirgister/master/images/fa-list-alt_256_0_000000_none.png)
+![Logo](https://raw.githubusercontent.com/yafp/dirgister/master/images/fa-list-alt_128_0_d3d3d3_none.png)
 
 
 # DirGister
