@@ -1,7 +1,10 @@
+[![License](https://img.shields.io/badge/license-GPL3-brightgreen.svg)](LICENSE)
+
+
+DirGister
+==========
 ![Logo](https://raw.githubusercontent.com/yafp/dirgister/master/images/fa-list-alt_128_0_d3d3d3_none.png)
 
-
-# DirGister
 ... is a simple multi-platform directory indexer with html output
 
 ![ScreenShot](https://raw.githubusercontent.com/yafp/dirgister/master/docs/screenshot_mainui.png)
